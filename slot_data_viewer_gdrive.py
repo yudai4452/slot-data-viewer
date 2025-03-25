@@ -1,9 +1,22 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import os
 
 st.set_page_config(page_title="スロットデータビューワー", layout="wide")
 st.title("スロットデータビューワー（Google Drive対応版）")
+
+# --- 日本語フォント設定（Google FontsのNoto Sans CJK JP） ---
+font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf"
+font_path = "/tmp/NotoSansCJKjp-Regular.otf"
+
+if not os.path.exists(font_path):
+    import urllib.request
+    urllib.request.urlretrieve(font_url, font_path)
+
+fm.fontManager.addfont(font_path)
+plt.rcParams['font.family'] = 'Noto Sans CJK JP'
 
 # 店舗ごとのGoogle DriveファイルID
 store_files = {
@@ -17,7 +30,7 @@ file_id = store_files[store]
 url = f"https://drive.google.com/uc?id={file_id}"
 
 try:
-    df = pd.read_csv(url, encoding="utf-8")
+    df = pd.read_csv(url, encoding="shift_jis")
     df["日付"] = pd.to_datetime(df["日付"])
 
     # 機種名選択
