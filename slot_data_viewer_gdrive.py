@@ -49,7 +49,7 @@ try:
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(target_df["日付"], target_df[value_col], marker="o")
-    ax.set_title(f"{store} - {model} {machine} 番の {value_col} 推移")
+    ax.set_title(f"{store} - {model} - {machine} 番の {value_col} 推移")
     ax.set_xlabel("日付")
     ax.set_ylabel(value_col)
     ax.grid(True)
