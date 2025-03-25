@@ -30,7 +30,7 @@ file_id = store_files[store]
 url = f"https://drive.google.com/uc?id={file_id}"
 
 try:
-    df = pd.read_csv(url, encoding="utf-8")
+    df = pd.read_csv(url, encoding="shift_jis")
     df["日付"] = pd.to_datetime(df["日付"])
 
     # 機種名選択
@@ -49,11 +49,33 @@ try:
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(target_df["日付"], target_df[value_col], marker="o")
-    ax.set_title(f"{store} - {model} - {machine} 番の {value_col} 推移")
+    ax.set_title(f"{store} - {model} 台{machine} の {value_col} 推移")
     ax.set_xlabel("日付")
     ax.set_ylabel(value_col)
     ax.grid(True)
     st.pyplot(fig)
+
+    # --- 機種ごとのヒートマップ表示 ---
+    st.subheader("台番号×日付のヒートマップ（持玉/差玉）")
+    heatmap_col = "最大持玉" if store == "メッセ武蔵境" else "最大差玉"
+
+    if heatmap_col in filtered_df.columns:
+        pivot_df = filtered_df.pivot(index="台番号", columns="日付", values=heatmap_col)
+        st.write(f"表示項目: {heatmap_col}")
+
+        fig2, ax2 = plt.subplots(figsize=(12, 6))
+        c = ax2.imshow(pivot_df, aspect="auto", cmap="coolwarm", interpolation='none')
+        ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
+        ax2.set_xlabel("日付")
+        ax2.set_ylabel("台番号")
+        ax2.set_xticks(range(len(pivot_df.columns)))
+        ax2.set_xticklabels([d.strftime('%m/%d') for d in pivot_df.columns], rotation=90, fontsize=8)
+        ax2.set_yticks(range(len(pivot_df.index)))
+        ax2.set_yticklabels(pivot_df.index, fontsize=8)
+        fig2.colorbar(c, ax=ax2)
+        st.pyplot(fig2)
+    else:
+        st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
 
 except Exception as e:
     st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
