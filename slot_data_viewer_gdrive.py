@@ -30,7 +30,7 @@ file_id = store_files[store]
 url = f"https://drive.google.com/uc?id={file_id}"
 
 try:
-    df = pd.read_csv(url, encoding="shift_jis")
+    df = pd.read_csv(url, encoding="utf-8")
     df["日付"] = pd.to_datetime(df["日付"])
 
     # 機種名選択
