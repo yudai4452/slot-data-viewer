@@ -28,7 +28,7 @@ try:
     machine = st.selectbox("台番号を選択", sorted(filtered_df["台番号"].unique()))
 
     # 表示する項目を選択
-    exclude_cols = ["日付", "機種名", "台番号"]
+    exclude_cols = ["日付", "機種名", "台番号", "店舗名"]
     value_col = st.selectbox("表示項目を選択", [col for col in df.columns if col not in exclude_cols])
 
     # 該当データでグラフ描画
