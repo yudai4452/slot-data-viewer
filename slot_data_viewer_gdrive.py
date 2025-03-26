@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+from matplotlib.colors import ListedColormap
 import os
 
 st.set_page_config(page_title="スロットデータビューワー", layout="wide")
@@ -55,8 +56,23 @@ try:
     ax.grid(True)
     st.pyplot(fig)
 
-    # --- 機種ごとのヒートマップ表示 ---
-    st.subheader("台番号×日付のヒートマップ（持玉/差玉）")
+    # 青、紫、水色を避けた10色のカラーパレット
+    custom_colors = [
+        "#FF7F0E",  # オレンジ
+        "#d62728",  # レッド
+        "#2ca02c",  # グリーン
+        "#8c564b",  # ブラウン
+        "#e377c2",  # ピンク
+        "#7f7f7f",  # グレー
+        "#bcbd22",  # オリーブ
+        "#FFD700",  # ゴールド
+        "#000000",  # ブラック
+        "#F0E68C"   # カーキ
+    ]
+    custom_cmap = ListedColormap(custom_colors)
+
+    # --- 機種ごとのヒートマップ（全く違う色で表示） ---
+    st.subheader("台番号×日付のカスタムカラーマップ表示（持玉/差玉）")
     heatmap_col = "最大持玉" if store == "メッセ武蔵境" else "最大差玉"
 
     if heatmap_col in filtered_df.columns:
@@ -64,13 +80,12 @@ try:
         st.write(f"表示項目: {heatmap_col}")
 
         fig2, ax2 = plt.subplots(figsize=(12, 6))
-        # vmin, vmaxで色のスケールを固定
         vmin = pivot_df.min().min()
         vmax = pivot_df.max().max()
-        # "YlOrRd"カラーマップ（10段階の離散カラーマップ）を使用
-        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("YlOrRd", 10), interpolation='none', vmin=vmin, vmax=vmax)
+        # カスタムカラーマップを使用
+        c = ax2.imshow(pivot_df, aspect="auto", cmap=custom_cmap, interpolation='none', vmin=vmin, vmax=vmax)
         
-        ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
+        ax2.set_title(f"{model} の {heatmap_col} 表示（{store}）")
         ax2.set_xlabel("日付")
         ax2.set_ylabel("台番号")
         ax2.set_xticks(range(len(pivot_df.columns)))
