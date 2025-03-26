@@ -67,7 +67,8 @@ try:
         # vmin, vmaxで色のスケールを固定
         vmin = pivot_df.min().min()
         vmax = pivot_df.max().max()
-        c = ax2.imshow(pivot_df, aspect="auto", cmap="viridis", interpolation='none', vmin=vmin, vmax=vmax)
+        # plt.get_cmapで10段階の離散カラーマップを作成
+        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("viridis", 10), interpolation='none', vmin=vmin, vmax=vmax)
         
         ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
         ax2.set_xlabel("日付")
