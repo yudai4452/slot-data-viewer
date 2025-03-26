@@ -64,19 +64,22 @@ try:
         st.write(f"表示項目: {heatmap_col}")
 
         fig2, ax2 = plt.subplots(figsize=(12, 6))
-        # vmin, vmaxで色のスケールを固定
         vmin = pivot_df.min().min()
         vmax = pivot_df.max().max()
-        # plt.get_cmapで10段階の離散カラーマップを作成
-        #c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("viridis", 10), interpolation='none', vmin=vmin, vmax=vmax)
-        # plasmaカラーマップ（10段階）
-        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("plasma", 10), interpolation='none', vmin=vmin, vmax=vmax)
+
+        import matplotlib.colors as colors
+        # linthresh: 線形スケールにする閾値（データの特性に合わせて調整してください）
+        norm = colors.SymLogNorm(linthresh=1e-2, linscale=1.0, vmin=vmin, vmax=vmax)
+
+        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("viridis", 10),
+                         interpolation='none', norm=norm)
         
         ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
         ax2.set_xlabel("日付")
         ax2.set_ylabel("台番号")
         ax2.set_xticks(range(len(pivot_df.columns)))
-        ax2.set_xticklabels([d.strftime('%m/%d') for d in pivot_df.columns], rotation=90, fontsize=8)
+        ax2.set_xticklabels([d.strftime('%m/%d') for d in pivot_df.columns],
+                            rotation=90, fontsize=8)
         ax2.set_yticks(range(len(pivot_df.index)))
         ax2.set_yticklabels(pivot_df.index, fontsize=8)
         
