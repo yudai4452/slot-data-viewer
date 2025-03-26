@@ -56,19 +56,20 @@ try:
     ax.grid(True)
     st.pyplot(fig)
 
-    # 青、紫、水色を避けた10色のカラーパレット
+    # 黒から白へ、青・紫を含まない順序よいカラーマップ（低い値→高い値）
     custom_colors = [
-        "#FF7F0E",  # オレンジ
-        "#d62728",  # レッド
-        "#2ca02c",  # グリーン
-        "#8c564b",  # ブラウン
-        "#e377c2",  # ピンク
-        "#7f7f7f",  # グレー
-        "#bcbd22",  # オリーブ
-        "#FFD700",  # ゴールド
-        "#000000",  # ブラック
-        "#F0E68C"   # カーキ
+        "#000000",  # 黒（最小値）
+        "#8B0000",  # Dark Red（暗赤）
+        "#B22222",  # Firebrick（火事色）
+        "#FF0000",  # 赤
+        "#FF4500",  # Orange Red（オレンジレッド）
+        "#FF8C00",  # Dark Orange（濃いオレンジ）
+        "#FFA500",  # Orange（オレンジ）
+        "#FFD700",  # Gold（金色）
+        "#FFFF00",  # Yellow（黄色）
+        "#FFFFE0"   # Light Yellow（非常に明るい黄色）
     ]
+    
     custom_cmap = ListedColormap(custom_colors)
 
     # --- 機種ごとのヒートマップ（全く違う色で表示） ---
