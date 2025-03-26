@@ -83,3 +83,6 @@ try:
         st.pyplot(fig2)
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
+
+except Exception as e:
+    st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
