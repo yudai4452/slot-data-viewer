@@ -67,9 +67,8 @@ try:
         # vmin, vmaxで色のスケールを固定
         vmin = pivot_df.min().min()
         vmax = pivot_df.max().max()
- 
-        # plasmaカラーマップ（10段階）
-        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("plasma", 10), interpolation='none', vmin=vmin, vmax=vmax)
+        # "YlOrRd"カラーマップ（10段階の離散カラーマップ）を使用
+        c = ax2.imshow(pivot_df, aspect="auto", cmap=plt.get_cmap("YlOrRd", 10), interpolation='none', vmin=vmin, vmax=vmax)
         
         ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
         ax2.set_xlabel("日付")
@@ -85,6 +84,6 @@ try:
         st.pyplot(fig2)
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
-
+        
 except Exception as e:
     st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
