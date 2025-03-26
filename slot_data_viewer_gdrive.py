@@ -64,7 +64,11 @@ try:
         st.write(f"表示項目: {heatmap_col}")
 
         fig2, ax2 = plt.subplots(figsize=(12, 6))
-        c = ax2.imshow(pivot_df, aspect="auto", cmap="coolwarm", interpolation='none')
+        # vmin, vmaxで色のスケールを固定
+        vmin = pivot_df.min().min()
+        vmax = pivot_df.max().max()
+        c = ax2.imshow(pivot_df, aspect="auto", cmap="viridis", interpolation='none', vmin=vmin, vmax=vmax)
+        
         ax2.set_title(f"{model} の {heatmap_col} ヒートマップ（{store}）")
         ax2.set_xlabel("日付")
         ax2.set_ylabel("台番号")
@@ -72,10 +76,10 @@ try:
         ax2.set_xticklabels([d.strftime('%m/%d') for d in pivot_df.columns], rotation=90, fontsize=8)
         ax2.set_yticks(range(len(pivot_df.index)))
         ax2.set_yticklabels(pivot_df.index, fontsize=8)
-        fig2.colorbar(c, ax=ax2)
+        
+        cb = fig2.colorbar(c, ax=ax2)
+        cb.set_label("持玉/差玉の値")
+        
         st.pyplot(fig2)
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
-
-except Exception as e:
-    st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
