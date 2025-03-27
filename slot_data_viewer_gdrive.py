@@ -100,6 +100,23 @@ try:
         st.pyplot(fig2)
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
+
+    st.subheader("移動平均線を重ねた推移グラフ")
+    ma_col = st.selectbox("移動平均で表示する項目", [col for col in df.columns if col not in exclude_cols], key="ma_col")
+    ma_df = target_df.copy()
+    ma_df["MA7"] = ma_df[ma_col].rolling(window=7).mean()
+    ma_df["MA14"] = ma_df[ma_col].rolling(window=14).mean()
+
+    fig6, ax6 = plt.subplots(figsize=(10, 4))
+    ax6.plot(ma_df["日付"], ma_df[ma_col], label="実データ", marker="o", color="#4e79a7")
+    ax6.plot(ma_df["日付"], ma_df["MA7"], label="7日移動平均", linestyle="--", color="#59a14f")
+    ax6.plot(ma_df["日付"], ma_df["MA14"], label="14日移動平均", linestyle=":", color="#edc948")
+    ax6.set_title(f"{model} 台{machine} の {ma_col} 推移（移動平均線付き）")
+    ax6.set_xlabel("日付")
+    ax6.set_ylabel(ma_col)
+    ax6.grid(True)
+    ax6.legend()
+    st.pyplot(fig6)
         
 except Exception as e:
     st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
