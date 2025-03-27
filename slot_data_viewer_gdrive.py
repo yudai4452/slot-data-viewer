@@ -36,60 +36,45 @@ try:
 
     # 機種名選択
     model = st.selectbox("機種を選択", sorted(df["機種名"].unique()))
-
-    # 該当機種の台番号一覧
     filtered_df = df[df["機種名"] == model]
+
+    # 台番号選択
     machine = st.selectbox("台番号を選択", sorted(filtered_df["台番号"].unique()))
-
-    # 表示する項目を選択
-    exclude_cols = ["日付", "機種名", "台番号", "店舗名"]
-    value_col = st.selectbox("表示項目を選択", [col for col in df.columns if col not in exclude_cols])
-
-    # 該当データでグラフ描画
     target_df = filtered_df[filtered_df["台番号"] == machine].sort_values("日付")
 
-    # --- 通常の推移グラフ ---
-    st.subheader("日別の推移グラフ")
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(target_df["日付"], target_df[value_col], marker="o")
-    ax.set_title(f"{store} - {model} 台{machine} の {value_col} 推移")
-    ax.set_xlabel("日付")
-    ax.set_ylabel(value_col)
-    ax.grid(True)
-    st.pyplot(fig)
-
-    # --- 移動平均線付きグラフ ---
+    # --- 移動平均線付き推移グラフ ---
     st.subheader("移動平均線を重ねた推移グラフ")
-    ma_col = st.selectbox("移動平均で表示する項目", [col for col in df.columns if col not in exclude_cols], key="ma_col")
+    exclude_cols = ["日付", "機種名", "台番号", "店舗名"]
+    ma_col = st.selectbox("表示項目を選択", [col for col in df.columns if col not in exclude_cols], key="ma_col")
+
     ma_df = target_df.copy()
     ma_df["MA7"] = ma_df[ma_col].rolling(window=7).mean()
     ma_df["MA14"] = ma_df[ma_col].rolling(window=14).mean()
 
-    fig6, ax6 = plt.subplots(figsize=(10, 4))
-    ax6.plot(ma_df["日付"], ma_df[ma_col], label="実データ", marker="o", color="#4e79a7")
-    ax6.plot(ma_df["日付"], ma_df["MA7"], label="7日移動平均", linestyle="--", color="#59a14f")
-    ax6.plot(ma_df["日付"], ma_df["MA14"], label="14日移動平均", linestyle=":", color="#edc948")
-    ax6.set_title(f"{model} 台{machine} の {ma_col} 推移（移動平均線付き）")
-    ax6.set_xlabel("日付")
-    ax6.set_ylabel(ma_col)
-    ax6.grid(True)
-    ax6.legend()
-    st.pyplot(fig6)
+    fig1, ax1 = plt.subplots(figsize=(10, 4))
+    ax1.plot(ma_df["日付"], ma_df[ma_col], label="実データ", marker="o", color="#4e79a7")
+    ax1.plot(ma_df["日付"], ma_df["MA7"], label="7日移動平均", linestyle="--", color="#59a14f")
+    ax1.plot(ma_df["日付"], ma_df["MA14"], label="14日移動平均", linestyle=":", color="#edc948")
+    ax1.set_title(f"{model} 台{machine} の {ma_col} 推移（移動平均線付き）")
+    ax1.set_xlabel("日付")
+    ax1.set_ylabel(ma_col)
+    ax1.grid(True)
+    ax1.legend()
+    st.pyplot(fig1)
 
-    # --- カスタムカラーマップの定義 ---
-    custom_colors = [
-        "#4e79a7", "#59a14f", "#edc948", "#b07aa1", "#76b7b2",
-        "#ff9da7", "#9c755f", "#bab0ac", "#17becf", "#bcbd22"
-    ]
-    custom_cmap = ListedColormap(custom_colors)
-
-    # --- ヒートマップ表示 ---
+    # --- ヒートマップ ---
     st.subheader("台番号×日付のカスタムカラーマップ表示（持玉/差玉）")
     heatmap_col = "最大持玉" if store == "メッセ武蔵境" else "最大差玉"
 
     if heatmap_col in filtered_df.columns:
         pivot_df = filtered_df.pivot(index="台番号", columns="日付", values=heatmap_col)
-        st.write(f"表示項目: {heatmap_col}")
+
+        # カラーマップ定義（目立つ10色）
+        custom_colors = [
+            "#4e79a7", "#59a14f", "#edc948", "#b07aa1", "#76b7b2",
+            "#ff9da7", "#9c755f", "#bab0ac", "#17becf", "#bcbd22"
+        ]
+        custom_cmap = ListedColormap(custom_colors)
 
         fig2, ax2 = plt.subplots(figsize=(12, 6))
         vmin = pivot_df.min().min()
