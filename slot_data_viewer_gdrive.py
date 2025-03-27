@@ -55,7 +55,7 @@ try:
     ax1.plot(ma_df["日付"], ma_df[ma_col], label="実データ", marker="o", color="#4e79a7")
     ax1.plot(ma_df["日付"], ma_df["MA7"], label="7日移動平均", linestyle="--", color="#59a14f")
     ax1.plot(ma_df["日付"], ma_df["MA14"], label="14日移動平均", linestyle=":", color="#edc948")
-    ax1.set_title(f"{model} 台{machine} の {ma_col} 推移（移動平均線付き）")
+    ax1.set_title(f"{store} - {model} 台{machine} の {ma_col} 推移（移動平均線付き）")
     ax1.set_xlabel("日付")
     ax1.set_ylabel(ma_col)
     ax1.grid(True)
@@ -81,7 +81,7 @@ try:
         vmax = pivot_df.max().max()
         c = ax2.imshow(pivot_df, aspect="auto", cmap=custom_cmap, interpolation='none', vmin=vmin, vmax=vmax)
 
-        ax2.set_title(f"{model} の {heatmap_col} 表示（{store}）")
+        ax2.set_title(f"{store} - {model} の {heatmap_col} 表示（ヒートマップ）")
         ax2.set_xlabel("日付")
         ax2.set_ylabel("台番号")
         ax2.set_xticks(range(len(pivot_df.columns)))
