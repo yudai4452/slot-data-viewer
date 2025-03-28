@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.colors import ListedColormap
 import os
-import math
 
 # --- フォント設定 ---
 font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf"
@@ -97,6 +96,7 @@ try:
             st.pyplot(fig2)
 
         elif visualization_type == "スパークライン":
+            import math
             machine_ids = sorted(filtered_df["台番号"].unique())
             n_cols = 4
             n_rows = math.ceil(len(machine_ids) / n_cols)
@@ -105,14 +105,7 @@ try:
 
             for i, machine_id in enumerate(machine_ids):
                 data = filtered_df[filtered_df["台番号"] == machine_id].sort_values("日付")
-                axes[i].plot(data["日付"], data[heatmap_col], color="#4e79a7", linewidth=1, label="実データ")
-
-                # --- 移動平均線の追加 ---
-                ma7 = data[heatmap_col].rolling(window=7).mean()
-                ma14 = data[heatmap_col].rolling(window=14).mean()
-                axes[i].plot(data["日付"], ma7, color="#59a14f", linestyle="--", linewidth=1, label="MA7")
-                axes[i].plot(data["日付"], ma14, color="#edc948", linestyle=":", linewidth=1, label="MA14")
-
+                axes[i].plot(data["日付"], data[heatmap_col], color="#4e79a7", linewidth=1)
                 axes[i].set_title(f"台{machine_id}", fontsize=8)
                 axes[i].tick_params(axis='x', labelsize=6, rotation=45)
                 axes[i].tick_params(axis='y', labelsize=6)
@@ -122,7 +115,6 @@ try:
 
             fig.tight_layout()
             st.pyplot(fig)
-
 
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
