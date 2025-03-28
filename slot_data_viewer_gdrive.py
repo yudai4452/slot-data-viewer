@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.colors import ListedColormap
 import os
+import math
 
 # --- フォント設定 ---
 font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf"
@@ -96,7 +97,6 @@ try:
             st.pyplot(fig2)
 
         elif visualization_type == "スパークライン":
-            import math
             machine_ids = sorted(filtered_df["台番号"].unique())
             n_cols = 4
             n_rows = math.ceil(len(machine_ids) / n_cols)
