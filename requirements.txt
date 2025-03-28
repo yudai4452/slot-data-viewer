@@ -2,4 +2,3 @@ calplot
 plotly
 matplotlib
 pandas
-math
