@@ -105,7 +105,14 @@ try:
 
             for i, machine_id in enumerate(machine_ids):
                 data = filtered_df[filtered_df["台番号"] == machine_id].sort_values("日付")
-                axes[i].plot(data["日付"], data[heatmap_col], color="#4e79a7", linewidth=1)
+                axes[i].plot(data["日付"], data[heatmap_col], color="#4e79a7", linewidth=1, label="実データ")
+
+                # --- 移動平均線の追加 ---
+                ma7 = data[heatmap_col].rolling(window=7).mean()
+                ma14 = data[heatmap_col].rolling(window=14).mean()
+                axes[i].plot(data["日付"], ma7, color="#59a14f", linestyle="--", linewidth=1, label="MA7")
+                axes[i].plot(data["日付"], ma14, color="#edc948", linestyle=":", linewidth=1, label="MA14")
+
                 axes[i].set_title(f"台{machine_id}", fontsize=8)
                 axes[i].tick_params(axis='x', labelsize=6, rotation=45)
                 axes[i].tick_params(axis='y', labelsize=6)
@@ -115,6 +122,7 @@ try:
 
             fig.tight_layout()
             st.pyplot(fig)
+
 
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
