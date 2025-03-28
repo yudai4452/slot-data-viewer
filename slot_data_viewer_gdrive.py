@@ -65,7 +65,7 @@ try:
     st.subheader("台番号×日付の表示形式を選択（持玉/差玉）")
     visualization_type = st.selectbox(
         "表示形式を選択",
-        ["ヒートマップ", "バブルチャート", "3Dサーフェス", "スパークライン", "カレンダーマップ"],
+        ["ヒートマップ", "スパークライン"],
         index=0
     )
 
@@ -95,41 +95,6 @@ try:
             cb.set_label("持玉/差玉の値")
             st.pyplot(fig2)
 
-        elif visualization_type == "バブルチャート":
-            bubble_df = filtered_df[["日付", "台番号", heatmap_col]].dropna()
-            fig3, ax3 = plt.subplots(figsize=(12, 6))
-            bubble = ax3.scatter(
-                x=bubble_df["日付"],
-                y=bubble_df["台番号"],
-                s=bubble_df[heatmap_col] / 10,
-                c=bubble_df[heatmap_col],
-                cmap="coolwarm",
-                alpha=0.7,
-                edgecolors='w'
-            )
-            ax3.set_title(f"{store} - {model} の {heatmap_col} バブルチャート")
-            ax3.set_xlabel("日付")
-            ax3.set_ylabel("台番号")
-            fig3.colorbar(bubble, label="持玉/差玉の値")
-            st.pyplot(fig3)
-
-        elif visualization_type == "3Dサーフェス":
-            import plotly.graph_objects as go
-            fig4 = go.Figure(data=[go.Surface(
-                z=pivot_df.values,
-                x=[d.strftime('%Y-%m-%d') for d in pivot_df.columns],
-                y=pivot_df.index
-            )])
-            fig4.update_layout(
-                title=f"{store} - {model} の {heatmap_col}（3D表示）",
-                scene=dict(
-                    xaxis_title='日付',
-                    yaxis_title='台番号',
-                    zaxis_title='持玉/差玉'
-                )
-            )
-            st.plotly_chart(fig4)
-
         elif visualization_type == "スパークライン":
             import math
             machine_ids = sorted(filtered_df["台番号"].unique())
@@ -150,15 +115,6 @@ try:
 
             fig.tight_layout()
             st.pyplot(fig)
-
-        elif visualization_type == "カレンダーマップ":
-            try:
-                import calplot
-                daily_mean = filtered_df.groupby("日付")[heatmap_col].mean()
-                fig_cal, ax_cal = calplot.calplot(daily_mean, cmap="YlOrRd", colorbar=True)
-                st.pyplot(fig_cal)
-            except ImportError:
-                st.warning("カレンダーマップを表示するには `calplot` のインストールが必要です。\n\n`pip install calplot` を実行してください。")
 
     else:
         st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
