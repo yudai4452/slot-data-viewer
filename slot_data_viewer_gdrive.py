@@ -19,16 +19,28 @@ CUSTOM_COLORS = [
     "#ff9da7", "#9c755f", "#bab0ac", "#17becf", "#bcbd22"
 ]
 
+# ---------- カラム名の定数 ----------
+DATE_COL = "日付"
+MODEL_COL = "機種名"
+MACHINE_COL = "台番号"
+STORE_COL = "店舗名"
+
 # ---------- フォントの読み込み（キャッシュ付き） ----------
 @st.cache_resource
 def load_font(font_url: str, font_path: str) -> None:
     """
     指定URLから日本語フォントをダウンロードし、Matplotlibに登録します。
     """
-    if not os.path.exists(font_path):
-        urllib.request.urlretrieve(font_url, font_path)
-    fm.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = 'Noto Sans CJK JP'
+    try:
+        if not os.path.exists(font_path):
+            logging.info("フォントをダウンロード中...")
+            urllib.request.urlretrieve(font_url, font_path)
+        fm.fontManager.addfont(font_path)
+        plt.rcParams['font.family'] = 'Noto Sans CJK JP'
+        logging.info("フォントの読み込みに成功しました。")
+    except Exception as e:
+        logging.exception("フォントの読み込みに失敗しました。")
+        raise e
 
 # ---------- CSVデータの読み込み（キャッシュ付き） ----------
 @st.cache_data
@@ -41,22 +53,20 @@ def load_data(url: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: 読み込んだデータフレーム
     """
-    df = pd.read_csv(url, encoding="utf-8")
-    df["日付"] = pd.to_datetime(df["日付"])
-    return df
+    try:
+        logging.info("CSVデータを読み込み中...")
+        df = pd.read_csv(url, encoding="utf-8")
+        df[DATE_COL] = pd.to_datetime(df[DATE_COL])
+        logging.info("CSVデータの読み込みに成功しました。")
+        return df
+    except Exception as e:
+        logging.exception("CSVデータの読み込みでエラーが発生しました。")
+        raise e
 
 # ---------- ヒートマップ作成関数 ----------
 def plot_heatmap(pivot_df: pd.DataFrame, store: str, model: str, heatmap_col: str) -> plt.Figure:
     """
     ピボットテーブルからヒートマップを生成します。
-
-    Parameters:
-        pivot_df (pd.DataFrame): ヒートマップ作成用のピボットテーブル
-        store (str): 店舗名
-        model (str): 機種名
-        heatmap_col (str): 表示対象の列名
-    Returns:
-        plt.Figure: ヒートマップのFigureオブジェクト
     """
     fig, ax = plt.subplots(figsize=(12, 6))
     custom_cmap = ListedColormap(CUSTOM_COLORS)
@@ -78,22 +88,16 @@ def plot_heatmap(pivot_df: pd.DataFrame, store: str, model: str, heatmap_col: st
 def plot_sparklines(filtered_df: pd.DataFrame, heatmap_col: str) -> plt.Figure:
     """
     各台のスパークライン（小型折れ線グラフ）を生成します。
-
-    Parameters:
-        filtered_df (pd.DataFrame): フィルタリング済みデータ
-        heatmap_col (str): 表示対象の列名
-    Returns:
-        plt.Figure: スパークライン群のFigureオブジェクト
     """
-    machine_ids = sorted(filtered_df["台番号"].unique())
+    machine_ids = sorted(filtered_df[MACHINE_COL].unique())
     n_cols = 4
     n_rows = math.ceil(len(machine_ids) / n_cols)
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols * 3, n_rows * 2), sharex=True)
     axes = axes.flatten()
 
     for i, machine_id in enumerate(machine_ids):
-        data = filtered_df[filtered_df["台番号"] == machine_id].sort_values("日付")
-        axes[i].plot(data["日付"], data[heatmap_col], color=CUSTOM_COLORS[0], linewidth=1)
+        data = filtered_df[filtered_df[MACHINE_COL] == machine_id].sort_values(DATE_COL)
+        axes[i].plot(data[DATE_COL], data[heatmap_col], color=CUSTOM_COLORS[0], linewidth=1)
         axes[i].set_title(f"台{machine_id}", fontsize=8)
         axes[i].tick_params(axis='x', labelsize=6, rotation=45)
         axes[i].tick_params(axis='y', labelsize=6)
@@ -108,24 +112,15 @@ def plot_sparklines(filtered_df: pd.DataFrame, heatmap_col: str) -> plt.Figure:
 def plot_moving_average(target_df: pd.DataFrame, col_ma: str, store: str, model: str, machine: str) -> plt.Figure:
     """
     特定の台のデータに対して、7日・14日の移動平均線を重ねた推移グラフを生成します。
-
-    Parameters:
-        target_df (pd.DataFrame): 特定の台のデータ
-        col_ma (str): 表示対象の列名
-        store (str): 店舗名
-        model (str): 機種名
-        machine (str): 台番号
-    Returns:
-        plt.Figure: 移動平均グラフのFigureオブジェクト
     """
-    ma_df = target_df.copy().sort_values("日付")
-    ma_df["MA7"] = ma_df[col_ma].rolling(window=7).mean()
-    ma_df["MA14"] = ma_df[col_ma].rolling(window=14).mean()
+    ma_df = target_df.copy().sort_values(DATE_COL)
+    ma_df["MA7"] = ma_df[col_ma].rolling(window=7, min_periods=1).mean()
+    ma_df["MA14"] = ma_df[col_ma].rolling(window=14, min_periods=1).mean()
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(ma_df["日付"], ma_df[col_ma], label="実データ", marker="o", color=CUSTOM_COLORS[0])
-    ax.plot(ma_df["日付"], ma_df["MA7"], label="7日移動平均", linestyle="--", color=CUSTOM_COLORS[1])
-    ax.plot(ma_df["日付"], ma_df["MA14"], label="14日移動平均", linestyle=":", color=CUSTOM_COLORS[2])
+    ax.plot(ma_df[DATE_COL], ma_df[col_ma], label="実データ", marker="o", color=CUSTOM_COLORS[0])
+    ax.plot(ma_df[DATE_COL], ma_df["MA7"], label="7日移動平均", linestyle="--", color=CUSTOM_COLORS[1])
+    ax.plot(ma_df[DATE_COL], ma_df["MA14"], label="14日移動平均", linestyle=":", color=CUSTOM_COLORS[2])
     ax.set_title(f"{store} - {model} 台{machine} の {col_ma} 推移（移動平均線付き）")
     ax.set_xlabel("日付")
     ax.set_ylabel(col_ma)
@@ -133,13 +128,17 @@ def plot_moving_average(target_df: pd.DataFrame, col_ma: str, store: str, model:
     ax.legend()
     return fig
 
+def setup_page():
+    """Streamlitのページ設定を行います。"""
+    st.set_page_config(page_title="スロットデータビューワー", layout="wide")
+    st.title("スロットデータビューワー（Google Drive対応版）")
+
 def main():
     # フォント読み込み（キャッシュ済み）
     load_font(FONT_URL, FONT_PATH)
 
     # Streamlitページ設定
-    st.set_page_config(page_title="スロットデータビューワー", layout="wide")
-    st.title("スロットデータビューワー（Google Drive対応版）")
+    setup_page()
 
     # サイドバーに設定項目を集約
     st.sidebar.header("設定")
@@ -157,19 +156,18 @@ def main():
             df = load_data(url)
         except Exception as e:
             st.error(f"CSVの読み込みまたは解析でエラーが発生しました: {e}")
-            logging.exception("CSVの読み込みに失敗しました")
             st.stop()
 
     # 必要な列が存在するか検証
-    required_columns = ["日付", "機種名", "台番号"]
+    required_columns = [DATE_COL, MODEL_COL, MACHINE_COL]
     for col in required_columns:
         if col not in df.columns:
             st.error(f"必要な列 '{col}' がCSVに存在しません。")
             st.stop()
 
     # サイドバーでその他の選択項目
-    model = st.sidebar.selectbox("機種を選択", sorted(df["機種名"].unique()))
-    filtered_df = df[df["機種名"] == model]
+    model = st.sidebar.selectbox("機種を選択", sorted(df[MODEL_COL].unique()))
+    filtered_df = df[df[MODEL_COL] == model]
     if filtered_df.empty:
         st.error("選択された機種のデータが存在しません。")
         st.stop()
@@ -182,25 +180,27 @@ def main():
         # 店舗により使用する列を切り替え
         heatmap_col = "最大持玉" if store == "メッセ武蔵境" else "最大差玉"
         if heatmap_col in filtered_df.columns:
-            pivot_df = filtered_df.pivot(index="台番号", columns="日付", values=heatmap_col)
+            pivot_df = filtered_df.pivot(index=MACHINE_COL, columns=DATE_COL, values=heatmap_col)
             if visualization_type == "ヒートマップ":
                 fig_heatmap = plot_heatmap(pivot_df, store, model, heatmap_col)
                 st.pyplot(fig_heatmap)
+                plt.close(fig_heatmap)
             else:
                 fig_spark = plot_sparklines(filtered_df, heatmap_col)
                 st.pyplot(fig_spark)
+                plt.close(fig_spark)
         else:
             st.warning(f"この店舗では '{heatmap_col}' の列が見つかりませんでした。")
     
     # ---------- セクション②：特定の台の移動平均グラフ ----------
     with st.expander("② 特定の台の移動平均線付き推移グラフ", expanded=True):
         st.subheader("移動平均線を重ねた推移グラフ")
-        machine = st.selectbox("台番号を選択", sorted(filtered_df["台番号"].unique()))
-        target_df = filtered_df[filtered_df["台番号"] == machine].sort_values("日付")
+        machine = st.selectbox("台番号を選択", sorted(filtered_df[MACHINE_COL].unique()))
+        target_df = filtered_df[filtered_df[MACHINE_COL] == machine].sort_values(DATE_COL)
         if target_df.empty:
             st.error("選択された台番号のデータが存在しません。")
         else:
-            exclude_cols = ["日付", "機種名", "台番号", "店舗名"]
+            exclude_cols = [DATE_COL, MODEL_COL, MACHINE_COL, STORE_COL]
             col_options = [col for col in df.columns if col not in exclude_cols]
             if not col_options:
                 st.error("表示項目の候補がありません。")
@@ -208,6 +208,7 @@ def main():
                 col_ma = st.selectbox("表示項目を選択", col_options, key="ma_col")
                 fig_ma = plot_moving_average(target_df, col_ma, store, model, machine)
                 st.pyplot(fig_ma)
+                plt.close(fig_ma)
 
 if __name__ == "__main__":
     main()
