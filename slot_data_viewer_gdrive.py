@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title="スロットデータビューワー", layout="wide")
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
@@ -130,7 +132,6 @@ def plot_moving_average(target_df: pd.DataFrame, col_ma: str, store: str, model:
 
 def setup_page():
     """Streamlitのページ設定を行います。"""
-    st.set_page_config(page_title="スロットデータビューワー", layout="wide")
     st.title("スロットデータビューワー（Google Drive対応版）")
 
 def main():
